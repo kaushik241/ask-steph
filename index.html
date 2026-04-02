@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steph, a question 🎳</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fecfef, #feada6, #ffd6e7);
+      background-size: 400% 400%;
+      animation: bgShift 10s ease infinite;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes bgShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Floating hearts layer ───────────────────────────────────── */
+    #hearts {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .fh {
+      position: absolute;
+      bottom: -60px;
+      pointer-events: none;
+      user-select: none;
+      animation: rise linear forwards;
+    }
+    @keyframes rise {
+      0%   { transform: translateY(0) rotate(0deg);      opacity: 0.9; }
+      100% { transform: translateY(-115vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── Card ────────────────────────────────────────────────────── */
+    .card {
+      position: relative;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 36px;
+      padding: 56px 68px 52px;
+      text-align: center;
+      max-width: 520px;
+      width: 92%;
+      box-shadow:
+        0 28px 80px rgba(214, 51, 132, 0.22),
+        0 4px 16px  rgba(214, 51, 132, 0.10);
+      animation: cardGlow 3s ease-in-out infinite;
+    }
+    @keyframes cardGlow {
+      0%,100% { box-shadow: 0 28px 80px rgba(214,51,132,.22), 0 4px 16px rgba(214,51,132,.10); }
+      50%     { box-shadow: 0 36px 96px rgba(214,51,132,.38), 0 6px 22px rgba(214,51,132,.18); }
+    }
+
+    #top-emoji {
+      display: block;
+      font-size: 5rem;
+      margin-bottom: 18px;
+      transition: opacity 0.25s ease;
+      animation: bounce 2.4s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      45%     { transform: translateY(-14px); }
+    }
+
+    .title {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2.6rem;
+      color: #d63384;
+      margin-bottom: 12px;
+    }
+
+    #q-text {
+      font-size: 1.15rem;
+      color: #777;
+      line-height: 1.8;
+      min-height: 60px;
+      margin-bottom: 38px;
+      transition: opacity 0.25s ease;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      padding: 15px 48px;
+      border-radius: 50px;
+      font-size: 1.15rem;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+
+    #yes-btn {
+      background: linear-gradient(135deg, #f472b6, #e11d48);
+      color: #fff;
+      box-shadow: 0 6px 22px rgba(225, 29, 72, 0.40);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    #yes-btn:hover  { transform: scale(1.12); box-shadow: 0 10px 30px rgba(225,29,72,.55); }
+    #yes-btn:active { transform: scale(1.06); }
+
+    #no-btn {
+      background: linear-gradient(135deg, #c0c0c0, #9a9a9a);
+      color: #fff;
+      transition: opacity 0.4s ease,
+                  left 0.2s cubic-bezier(.25,.46,.45,.94),
+                  top  0.2s cubic-bezier(.25,.46,.45,.94);
+    }
+    #no-btn.escaped {
+      position: fixed;
+      z-index: 1000;
+    }
+    #no-btn.done {
+      opacity: 0.30;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    /* ── Sub-message ─────────────────────────────────────────────── */
+    #sub-msg {
+      margin-top: 24px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #d63384;
+      min-height: 26px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    #sub-msg.show { opacity: 1; }
+
+    /* ── YES celebration screen ──────────────────────────────────── */
+    #yes-screen { display: none; }
+    #yes-screen.show { display: block; }
+
+    .yes-big {
+      display: block;
+      font-size: 5.5rem;
+      margin-bottom: 20px;
+      animation: spinPop 1.2s ease-in-out infinite;
+    }
+    @keyframes spinPop {
+      0%,100% { transform: rotate(-7deg) scale(1);    }
+      50%     { transform: rotate(7deg)  scale(1.14); }
+    }
+    .yes-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2.8rem;
+      color: #d63384;
+      margin-bottom: 14px;
+    }
+    .yes-sub  { font-size: 1.08rem; color: #888; line-height: 1.85; }
+    .yes-row  {
+      margin-top: 22px;
+      font-size: 2.1rem;
+      letter-spacing: 8px;
+      animation: pulseRow 1.6s ease-in-out infinite;
+    }
+    @keyframes pulseRow { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+    /* ── Confetti ────────────────────────────────────────────────── */
+    .cp {
+      position: fixed;
+      top: -25px;
+      border-radius: 3px;
+      animation: fall linear forwards;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(0)     rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(115vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="hearts"></div>
+
+<div class="card" id="card">
+
+  <!-- ── QUESTION SCREEN ── -->
+  <div id="main-screen">
+    <span id="top-emoji">🎳</span>
+    <h1 class="title">Hey Steph! 💕</h1>
+    <p id="q-text">You're new in Mumbai 🌆 — let me show you the city, starting with a bowling date! 🎳 What do you say?</p>
+    <div class="btn-row">
+      <button class="btn" id="yes-btn">Let's bowl! 🎳💕</button>
+      <button class="btn" id="no-btn">No 😔</button>
+    </div>
+    <p id="sub-msg"></p>
+  </div>
+
+  <!-- ── YES SCREEN ── -->
+  <div id="yes-screen">
+    <span class="yes-big">🎳</span>
+    <h1 class="yes-title">I knew you'd strike! 💕</h1>
+    <p class="yes-sub">
+      Get ready for bowling, coffee &amp; the best<br>
+      Mumbai night of your life, Steph! 🌆✨
+    </p>
+    <p class="yes-row">🎳 💕 🌆 🎯 ✨</p>
+  </div>
+
+</div>
+
+<script>
+// ── Floating hearts ───────────────────────────────────────────────────────────
+const heartsDiv = document.getElementById('hearts');
+const EMOJIS    = ['🎳','💕','💖','🏙️','✨','💫','🌆','🎯','⭐','💓','🌊','🎀','💘','🩷','🥭'];
+
+function makeHeart() {
+  const el  = document.createElement('span');
+  el.className = 'fh';
+  el.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+  const sz  = 0.8 + Math.random() * 1.5;
+  const dur = 8   + Math.random() * 9;
+  el.style.cssText = `font-size:${sz}rem;left:${Math.random()*98}vw;animation-duration:${dur}s`;
+  heartsDiv.appendChild(el);
+  setTimeout(() => el.remove(), dur * 1000 + 400);
+}
+for (let i = 0; i < 14; i++) setTimeout(makeHeart, i * 220);
+setInterval(makeHeart, 520);
+
+// ── Plea messages ─────────────────────────────────────────────────────────────
+const pleas = [
+  { q: 'Wait, are you sure? 🎳 I promise I won\'t laugh at your bowling form!',        e: '🥺' },
+  { q: 'Please please please? I\'ll even let you win! 🎳💕',                           e: '🙏' },
+  { q: 'I\'ll get you coffee after — best cup in Mumbai, I promise! ☕😢',              e: '😢' },
+  { q: 'You\'re new here — let me be your first good Mumbai memory! 💔🌆',             e: '💔' },
+  { q: 'Last plea... someone has to show you Mumbai properly! 🥺🎳✨',                  e: '😭' },
+];
+
+let noCount = 0;
+
+const emojiEl  = document.getElementById('top-emoji');
+const qText    = document.getElementById('q-text');
+const noBtn    = document.getElementById('no-btn');
+const yesBtn   = document.getElementById('yes-btn');
+const subMsg   = document.getElementById('sub-msg');
+
+// Fade-swap helper
+function swap(el, newText) {
+  el.style.opacity = '0';
+  setTimeout(() => { el.textContent = newText; el.style.opacity = '1'; }, 260);
+}
+
+// ── No button ─────────────────────────────────────────────────────────────────
+noBtn.addEventListener('click', () => {
+  if (noCount >= pleas.length) return;
+  const p = pleas[noCount];
+  swap(qText, p.q);
+  swap(emojiEl, p.e);
+  noCount++;
+  if (noCount >= pleas.length) {
+    setTimeout(lockNo, 600);
+  }
+});
+
+function lockNo() {
+  // Anchor button at its current viewport position, then fix it
+  const r = noBtn.getBoundingClientRect();
+  noBtn.style.left = r.left + 'px';
+  noBtn.style.top  = r.top  + 'px';
+  noBtn.classList.add('escaped', 'done');   // position:fixed + disabled
+
+  // Updated message
+  setTimeout(() => {
+    swap(qText, 'No means no... but not in Mumbai! 😤 The city won\'t let you say no! 🌆💕');
+    swap(emojiEl, '🌆');
+    subMsg.textContent = '"No" is officially off the table, Steph! 🎳💕';
+    subMsg.classList.add('show');
+  }, 350);
+
+  // Keep running from mouse / touch even while disabled (pointer-events:none = cosmetic only)
+  document.addEventListener('mousemove',  runFromPointer);
+  document.addEventListener('touchmove',  runFromTouch, { passive: false });
+}
+
+function flee() {
+  const bw = noBtn.offsetWidth  + 30;
+  const bh = noBtn.offsetHeight + 30;
+  noBtn.style.left = (10 + Math.random() * (window.innerWidth  - bw)) + 'px';
+  noBtn.style.top  = (10 + Math.random() * (window.innerHeight - bh)) + 'px';
+}
+
+function runFromPointer(e) {
+  const r  = noBtn.getBoundingClientRect();
+  const cx = r.left + r.width  / 2;
+  const cy = r.top  + r.height / 2;
+  if (Math.hypot(e.clientX - cx, e.clientY - cy) < 140) flee();
+}
+
+function runFromTouch(e) {
+  const t = e.touches[0];
+  runFromPointer({ clientX: t.clientX, clientY: t.clientY });
+}
+
+// ── Yes button ────────────────────────────────────────────────────────────────
+yesBtn.addEventListener('click', () => {
+  noBtn.style.display = 'none';
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('yes-screen').classList.add('show');
+  launchConfetti();
+  for (let i = 0; i < 30; i++) setTimeout(makeHeart, i * 55);
+});
+
+// ── Confetti ──────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const palette = ['#f472b6','#e11d48','#fbbf24','#34d399','#60a5fa','#c084fc','#fff','#ff69b4','#fb7185'];
+  for (let i = 0; i < 130; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'cp';
+      p.style.cssText = [
+        `left:${Math.random()*100}vw`,
+        `width:${5 + Math.random()*9}px`,
+        `height:${7 + Math.random()*11}px`,
+        `background:${palette[Math.floor(Math.random()*palette.length)]}`,
+        `border-radius:${Math.random() > .5 ? '50%' : '3px'}`,
+        `animation-duration:${2.2 + Math.random()*2.8}s`,
+        `animation-delay:${Math.random()*0.9}s`,
+      ].join(';');
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 6000);
+    }, i * 18);
+  }
+}
+</script>
+</body>
+</html>
